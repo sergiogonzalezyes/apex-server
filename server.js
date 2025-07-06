@@ -1,9 +1,11 @@
-import Fastify from 'fastify';
+// import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { pool } from './db.js';
 import chokidar from 'chokidar';
 import fs from 'fs';
 import path from 'path';
+
+const Fastify = require('fastify');
 
 const fastify = Fastify({ logger: true });
 
