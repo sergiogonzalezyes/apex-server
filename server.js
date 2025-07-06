@@ -247,7 +247,7 @@ fastify.post('/api/set-watch-path', async (request, reply) => {
 loadConfig();
 
 
-fastify.listen({ port: 3000 }, (err, address) => {
+fastify.listen({ port: 3000, host: '0.0.0.0' }, (err, address) => {
   if (err) {
     console.error(err);
     process.exit(1);
