@@ -8,7 +8,8 @@ import path from 'path';
 const fastify = Fastify({ logger: true });
 
 await fastify.register(cors, {
-  origin: '*',
+  origin: 'https://apex-client-beta.vercel.app',
+  credentials: true
 });
 
 
