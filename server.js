@@ -14,7 +14,7 @@ await fastify.register(cors, {
 });
 
 // Start UDP listener for Assetto Corsa telemetry on the configured port
-const acPort = parseInt(process.env.AC_UDP_PORT || process.env.UDP_PLUGIN_LOCAL_PORT, 10) || 12000;
+const acPort = parseInt(process.env.AC_UDP_PORT || process.env.UDP_PLUGIN_LOCAL_PORT, 10) || 9600;
 console.log(`📡 Listening for AC UDP packets on port ${acPort}`);
 const acListener = ACSP({ host: '0.0.0.0', port: acPort });  // <-- this is correct
 
