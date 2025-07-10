@@ -40,11 +40,6 @@ acListener.on('error', (err) => {
   console.error(`ACSP UDP error: ${err.message}`);
 });
 
-// Log every event
-acListener.onAny((event, data) => {
-  console.log(`[AC EVENT] ${event}:`, data);
-});
-
 
 
 fastify.post('/api/laps', async (req, reply) => {
