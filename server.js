@@ -4,9 +4,7 @@ import { pool } from './db.js';
 import chokidar from 'chokidar';
 import fs from 'fs';
 import path from 'path';
-import ACSP from 'acsp';
 import dgram from 'dgram';
-
 
 const fastify = Fastify({ logger: true });
 
@@ -15,16 +13,12 @@ await fastify.register(cors, {
   credentials: true
 });
 
-
-
+const AC_UDP_PORT = 12000;
 const udpServer = dgram.createSocket('udp4');
-
-// Replace this with your AC UDP_PORT (from server_cfg.ini)
-const AC_UDP_PORT = 9600;
 
 udpServer.on('message', (msg, rinfo) => {
   console.log(`📡 Received ${msg.length} bytes from ${rinfo.address}:${rinfo.port}`);
-  console.log(msg); // Raw Buffer (you'll eventually parse this)
+  console.log(msg);
 });
 
 udpServer.on('listening', () => {
@@ -33,44 +27,6 @@ udpServer.on('listening', () => {
 });
 
 udpServer.bind(AC_UDP_PORT);
-
-
-
-
-
-
-
-
-
-
-
-
-// Start UDP listener for Assetto Corsa telemetry on the configured port
-const acPort = parseInt(process.env.AC_UDP_PORT || process.env.UDP_PLUGIN_LOCAL_PORT, 10) || 9600;
-console.log(`📡 Listening for AC UDP packets on port ${acPort}`);
-const acListener = ACSP({ host: '0.0.0.0', port: acPort });  // <-- this is correct
-
-acListener.on('new_connection', (conn) => {
-  console.log(`➡️  New driver connected: ${conn.driver_name} (Car: ${conn.car_model})`);
-});
-
-acListener.on('lap_completed', (lap) => {
-  setImmediate(async () => {
-    try {
-      console.log(`[LIVE] Lap by ${lap.DriverName}: ${lap.LapTime}`);
-    } catch (err) {
-      console.error(`❌ Live lap log error: ${err.message}`);
-    }
-  });
-});
-
-acListener.on('end_session', (session) => {
-  console.log(`✅ Session ended, results file: ${session.filename}`);
-});
-
-acListener.on('error', (err) => {
-  console.error(`ACSP UDP error: ${err.message}`);
-});
 
 
 
@@ -313,8 +269,7 @@ loadConfig();
 process.on('SIGINT', async () => {
   console.log('🔴 Gracefully shutting down...');
   try {
-    watcher?.close();
-    acListener.sock?.close();
+    udpServer.close();
     await fastify.close();
     process.exit(0);
   } catch (err) {
@@ -323,12 +278,10 @@ process.on('SIGINT', async () => {
   }
 });
 
-
 fastify.listen({ port: 3000, host: '0.0.0.0' }, (err, address) => {
   if (err) {
     console.error(err);
-    // If HTTP fails to start, you may close the UDP socket to clean up:
-    try { acListener.sock.close(); } catch {} 
+    try { udpServer.close(); } catch {}
     process.exit(1);
   }
   console.log(`🚀 Server listening at ${address}`);
