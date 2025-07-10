@@ -16,36 +16,36 @@ await fastify.register(cors, {
 // Start UDP listener for Assetto Corsa telemetry on the configured port
 const acPort = parseInt(process.env.AC_UDP_PORT || process.env.UDP_PLUGIN_LOCAL_PORT, 10) || 12000;
 console.log(`📡 Listening for AC UDP packets on port ${acPort}`);
-const acListener = ACSP({ host: '0.0.0.0', port: acPort });  // <-- this is the fix!
-
+const acListener = ACSP({ host: '0.0.0.0', port: acPort });  // <-- this is correct
 
 acListener.on('new_connection', (conn) => {
-  fastify.log.info(`➡️  New driver connected: ${conn.driver_name} (Car: ${conn.car_model})`);
-  // Optionally, record the new connection in the database:
-  // await pool.query('INSERT INTO connections(driver_name, car_model, guid) VALUES (?,?,?)', 
-  //                  [conn.driver_name, conn.car_model, conn.driver_guid]);
+  console.log(`➡️  New driver connected: ${conn.driver_name} (Car: ${conn.car_model})`);
 });
 
 acListener.on('lap_completed', (lap) => {
   setImmediate(async () => {
-      try {
-        // Optional DB insert
-        console.log(`[LIVE] Lap by ${lap.DriverName}: ${lap.LapTime}`);
-      } catch (err) {
-        fastify.log.error(`Live lap insert failed: ${err.message}`);
-      }
+    try {
+      console.log(`[LIVE] Lap by ${lap.DriverName}: ${lap.LapTime}`);
+    } catch (err) {
+      console.error(`❌ Live lap log error: ${err.message}`);
+    }
   });
 });
 
 acListener.on('end_session', (session) => {
-  fastify.log.info(`✅ Session ended, results file: ${session.filename}`);
-  // Optionally, trigger processing of the results or store summary in DB
+  console.log(`✅ Session ended, results file: ${session.filename}`);
 });
 
-// Handle UDP errors to prevent crashes
 acListener.on('error', (err) => {
-  fastify.log.error(`ACSP UDP error: ${err.message}`);
+  console.error(`ACSP UDP error: ${err.message}`);
 });
+
+// Log every event
+acListener.onAny((event, data) => {
+  console.log(`[AC EVENT] ${event}:`, data);
+});
+
+
 
 fastify.post('/api/laps', async (req, reply) => {
   const body = req.body;
