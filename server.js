@@ -5,6 +5,8 @@ import chokidar from 'chokidar';
 import fs from 'fs';
 import path from 'path';
 import ACSP from 'acsp';
+import dgram from 'dgram';
+
 
 const fastify = Fastify({ logger: true });
 
@@ -12,6 +14,36 @@ await fastify.register(cors, {
   origin: 'https://apex-client-beta.vercel.app',
   credentials: true
 });
+
+
+
+const udpServer = dgram.createSocket('udp4');
+
+// Replace this with your AC UDP_PORT (from server_cfg.ini)
+const AC_UDP_PORT = 9600;
+
+udpServer.on('message', (msg, rinfo) => {
+  console.log(`📡 Received ${msg.length} bytes from ${rinfo.address}:${rinfo.port}`);
+  console.log(msg); // Raw Buffer (you'll eventually parse this)
+});
+
+udpServer.on('listening', () => {
+  const address = udpServer.address();
+  console.log(`🚀 Listening for raw telemetry on port ${address.port}`);
+});
+
+udpServer.bind(AC_UDP_PORT);
+
+
+
+
+
+
+
+
+
+
+
 
 // Start UDP listener for Assetto Corsa telemetry on the configured port
 const acPort = parseInt(process.env.AC_UDP_PORT || process.env.UDP_PLUGIN_LOCAL_PORT, 10) || 9600;
