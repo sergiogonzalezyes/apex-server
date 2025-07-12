@@ -170,7 +170,6 @@ fastify.post('/api/set-watch-path', async (request, reply) => {
 
 
 
-
 fastify.post('/api/live-telemetry', async (req, reply) => {
   try {
     const { relayId, payload } = req.body;

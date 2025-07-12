@@ -1,12 +1,19 @@
 // utils/parseACPacket.js
-
 export function parseACPacket(buffer) {
-  // For now, just log and return basic metadata
-  console.log('🧩 Raw UDP payload:', buffer.toString('hex'));
+  try {
+    const packetId = buffer.readInt32LE(0);       // 0–3
+    const speedKmh = buffer.readFloatLE(4);        // 4–7
+    const rpm = buffer.readFloatLE(8);             // 8–11
+    const gear = buffer.readInt32LE(12);           // 12–15
 
-  // You can add pattern recognition, header parsing, or AC plugin specs here
-  return {
-    type: 'unknown',
-    payload: buffer.toString('utf8'), // or leave as Buffer for more control
-  };
+    return {
+      packetId,
+      speedKmh,
+      rpm,
+      gear
+    };
+  } catch (err) {
+    console.error('❌ Failed to decode telemetry packet:', err.message);
+    return null;
+  }
 }
