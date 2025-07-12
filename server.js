@@ -172,17 +172,30 @@ fastify.post('/api/set-watch-path', async (request, reply) => {
 
 
 fastify.post('/api/live-telemetry', async (req, reply) => {
-  const { relayId, timestamp, sourceIP, payload } = req.body;
+  try {
+    const { relayId, payload } = req.body;
+    if (!payload || !relayId) {
+      return reply.status(400).send({ error: 'Missing payload or relayId' });
+    }
 
-  // Parse the UDP payload
-  const result = parseACPacket(Buffer.from(payload.data));
+    const rawBuffer = Buffer.from(payload, 'hex');
+    console.log('🧩 Raw UDP payload:', payload);
 
-  // For now, just log the structured result
-  fastify.log.info(`📡 Parsed telemetry from ${relayId}:`, result);
+    const telemetry = parseACPacket(rawBuffer);
 
-  reply.send({ status: 'ok' });
+    if (!telemetry) {
+      return reply.status(422).send({ error: 'Invalid telemetry packet' });
+    }
+
+    console.log(`📡 Parsed telemetry from ${relayId}:`, telemetry);
+
+    // (Optional) Save, broadcast, or respond with processed data
+    reply.send({ success: true });
+  } catch (err) {
+    console.error('❌ Live telemetry error:', err.message);
+    reply.status(500).send({ error: 'Internal Server Error' });
+  }
 });
-
 
 
 
