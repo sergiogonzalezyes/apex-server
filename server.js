@@ -7,6 +7,8 @@ import fs from 'fs';
 import path from 'path';
 import dgram from 'dgram';
 import { parseSessions } from './utils/sessionParser.js';
+import { parseACPacket } from './utils/parseACPacket.js';
+
 
 const fastify = Fastify({ logger: true });
 
@@ -169,12 +171,16 @@ fastify.post('/api/set-watch-path', async (request, reply) => {
 
 
 
-// server.js
 fastify.post('/api/live-telemetry', async (req, reply) => {
-  const { body } = req;
-  console.log('📡 Live telemetry received:', body);
-  // You can eventually process or store this if needed
-  reply.send({ success: true });
+  const { relayId, timestamp, sourceIP, payload } = req.body;
+
+  // Parse the UDP payload
+  const result = parseACPacket(Buffer.from(payload.data));
+
+  // For now, just log the structured result
+  fastify.log.info(`📡 Parsed telemetry from ${relayId}:`, result);
+
+  reply.send({ status: 'ok' });
 });
 
 
